@@ -32,7 +32,7 @@ A Claude Code plugin that automates Discord Developer Portal operations via cmux
 ### Option 1: Plugin (recommended)
 
 ```
-/plugin marketplace add yamamoto/discord-portal-cli
+/plugin marketplace add hummer98/discord-portal-cli
 /plugin install discord-portal-cli
 ```
 
@@ -48,7 +48,7 @@ Skills, commands, and hooks are installed together.
 ### Option 2: Agent Skills (skills only)
 
 ```bash
-npx skills add yamamoto/discord-portal-cli
+npx skills add hummer98/discord-portal-cli
 ```
 
 > Note: Commands (`/create-bot`) are not included in Agent Skills distribution.
@@ -56,7 +56,7 @@ npx skills add yamamoto/discord-portal-cli
 ### Option 3: Manual (legacy)
 
 ```bash
-git clone https://github.com/yamamoto/discord-portal-cli.git
+git clone https://github.com/hummer98/discord-portal-cli.git
 cd discord-portal-cli
 bash install.sh
 ```

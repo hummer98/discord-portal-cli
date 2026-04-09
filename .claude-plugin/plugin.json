@@ -3,21 +3,8 @@
   "version": "0.1.0",
   "description": "Automate Discord Developer Portal operations (create bots, configure permissions, etc.) via cmux browser automation",
   "author": {
-    "name": "yamamoto"
+    "name": "hummer98"
   },
   "license": "MIT",
-  "repository": "https://github.com/yamamoto/discord-portal-cli",
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -n \"$CMUX_SURFACE_ID\" ] && [ -z \"$CMUX_NO_RENAME_TAB\" ]; then REF=$(cmux identify | jq -r '.caller.surface_ref'); NUM=$(echo \"$REF\" | cut -d: -f2); cmux rename-tab --surface \"$REF\" \"[$NUM] Claude Code\"; fi"
-          }
-        ]
-      }
-    ]
-  }
+  "repository": "https://github.com/hummer98/discord-portal-cli"
 }

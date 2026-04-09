@@ -32,7 +32,7 @@ Discord Developer Portal の操作を cmux ブラウザ自動化で行う Claude
 ### 方法1: Plugin（推奨）
 
 ```
-/plugin marketplace add yamamoto/discord-portal-cli
+/plugin marketplace add hummer98/discord-portal-cli
 /plugin install discord-portal-cli
 ```
 
@@ -48,7 +48,7 @@ Discord Developer Portal の操作を cmux ブラウザ自動化で行う Claude
 ### 方法2: Agent Skills（スキルのみ）
 
 ```bash
-npx skills add yamamoto/discord-portal-cli
+npx skills add hummer98/discord-portal-cli
 ```
 
 > 注: Agent Skills ではコマンド（`/create-bot`）は含まれない。
@@ -56,7 +56,7 @@ npx skills add yamamoto/discord-portal-cli
 ### 方法3: 手動（レガシー）
 
 ```bash
-git clone https://github.com/yamamoto/discord-portal-cli.git
+git clone https://github.com/hummer98/discord-portal-cli.git
 cd discord-portal-cli
 bash install.sh
 ```

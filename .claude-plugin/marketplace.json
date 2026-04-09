@@ -1,8 +1,8 @@
 {
-  "name": "yamamoto-discord-portal-cli",
+  "name": "hummer98-discord-portal-cli",
   "owner": {
-    "name": "yamamoto",
-    "email": "github@yamamoto"
+    "name": "hummer98",
+    "email": "github@hummer98"
   },
   "plugins": [
     {
@@ -11,9 +11,9 @@
       "description": "Automate Discord Developer Portal operations (create bots, configure permissions, etc.) via cmux browser automation",
       "version": "0.1.0",
       "author": {
-        "name": "yamamoto"
+        "name": "hummer98"
       },
-      "repository": "https://github.com/yamamoto/discord-portal-cli",
+      "repository": "https://github.com/hummer98/discord-portal-cli",
       "license": "MIT",
       "keywords": ["claude-skill", "discord", "bot", "automation", "cmux", "browser"],
       "category": "automation",
