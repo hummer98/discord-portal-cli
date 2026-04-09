@@ -1,0 +1,10 @@
+{
+  "name": "discord-portal-cli",
+  "version": "0.1.0",
+  "description": "Automate Discord Developer Portal operations (create bots, configure permissions, etc.) via cmux browser automation",
+  "author": {
+    "name": "yamamoto"
+  },
+  "license": "MIT",
+  "keywords": ["discord", "bot", "automation", "cmux", "developer-portal"]
+}

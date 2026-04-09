@@ -1,0 +1,2 @@
+export CLAUDE_CONFIG_DIR=`pwd`/.config
+export CLAUDE_CODE_OAUTH_TOKEN="your-claude-code-oauth-token"

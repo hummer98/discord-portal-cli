@@ -1,0 +1,12 @@
+# Secrets
+.envrc
+
+# Claude Code local state
+.config/
+.claude/settings.local.json
+
+# OS
+.DS_Store
+
+# Node
+node_modules/
