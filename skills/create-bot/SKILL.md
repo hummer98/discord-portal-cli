@@ -1,16 +1,14 @@
 ---
 name: create-bot
-description: >
-  Discord Developer Portal で新しいBotアプリケーションを作成する。
-  cmux ブラウザ自動化を使い、アプリケーション作成 → Bot有効化 → トークン取得 → 権限設定 → 招待URL生成を一連で行う。
-  ユーザーが "Botを作って", "Discord Botを追加", "create discord bot", "新しいBotが必要" と言った場合にこのスキルを使用する。
+description: "Discord Developer Portal で Bot を作成する。cmux ブラウザ自動化でアプリケーション作成・トークン取得・権限設定・招待URL生成を行う。"
 argument-hint: <bot-name> [--server <server-id>] [--token-file <path>]
-allowed-tools: [Bash, Read, Write]
 ---
 
 # Discord Bot 作成スキル
 
 cmux ブラウザ自動化で Discord Developer Portal を操作し、Bot を作成する。
+
+> **インストール方法**: プラグインインストール（`/plugin install discord-portal-cli`）を推奨。手動インストール（`install.sh`）の場合、スクリプトの実行にはリポジトリルートからの実行が前提となる。
 
 ## 前提条件
 
@@ -30,6 +28,13 @@ bash skills/create-bot/scripts/create-bot-main.sh "MyBot" --server <SERVER_ID>
 # トークンをファイルに保存する場合
 bash skills/create-bot/scripts/create-bot-main.sh "MyBot" --token-file /tmp/bot-token.txt
 ```
+
+## 出力
+
+- Bot Token（安全に保管すること — 文字数のみ通知）
+- Application ID
+- 招待URL
+- 設定した権限の一覧
 
 ## 操作フロー（スクリプト版）
 
@@ -51,7 +56,7 @@ bash skills/create-bot/scripts/create-bot-main.sh "MyBot" --token-file /tmp/bot-
 - Bot ページで「トークンをリセット」→ 確認ダイアログ
 - **2FA**: パスワード入力が要求される → ユーザーにエスカレーション
 - コピーボタン → クリップボード(`pbpaste`) でトークン取得
-- **⚠️ セキュリティ**: トークン表示中に snapshot/screenshot は絶対に実行しない
+- **セキュリティ**: トークン表示中に snapshot/screenshot は絶対に実行しない
 - 出力: Bot Token（文字数のみ通知）
 
 ### Phase 4: Privileged Gateway Intents 設定
@@ -83,12 +88,16 @@ bash skills/create-bot/scripts/create-bot-main.sh "MyBot" --token-file /tmp/bot-
 
 エスカレーション: `say "⚠️ 人間の介入が必要です: <問題の説明>"` コマンドで通知。
 
-## セマンティック判断ポイント
+## よくある問題と対処
 
-Claude が snapshot/screenshot で状態を見て判断すべき箇所:
-- モーダルダイアログの内容確認（エラーメッセージの有無）
-- 保存成功メッセージの確認
-- DOM 構造が変わった場合のセレクタ再特定
+| 症状 | 原因 | 対処 |
+|------|------|------|
+| hCaptcha 出現 | Bot作成の検証 | ユーザーにエスカレーション |
+| 2FA パスワード要求 | トークンリセット時のセキュリティ | ユーザーにエスカレーション |
+| /login にリダイレクト | セッション切れ | ユーザーにログインを依頼 |
+| セレクタ不一致 | Discord のデプロイ更新 | snapshot で確認し、テキストベース検索に切り替え |
+| 保存ボタンが無効 | 変更なし | スキップして次の Phase へ |
+| ページロード前の操作エラー | ロード未完了 | `wait --load-state complete --timeout 15` を操作前に入れる |
 
 ## 技術的な注意事項
 
@@ -118,6 +127,68 @@ Claude が snapshot/screenshot で状態を見て判断すべき箇所:
 - ボタンテキストは日本語: 「新しいアプリケーション」「作成」「変更を保存」「トークンをリセット」「実行します！」
 - ロケール依存のため、英語 UI では動作しない可能性あり
 
+### セマンティック判断
+- Claude が snapshot/screenshot で状態を見て判断すべき箇所:
+  - モーダルダイアログの内容確認（エラーメッセージの有無）
+  - 保存成功メッセージの確認
+  - DOM 構造が変わった場合のセレクタ再特定
+
+## cmux browser コマンドリファレンス
+
+本スキルで使用する cmux browser の主要コマンド。
+
+### ブラウザ操作
+
+| 操作 | コマンド |
+|------|---------|
+| ブラウザ起動 | `cmux browser open "URL"` |
+| ページ遷移 | `cmux browser $BSURF goto "URL"` |
+| 読み込み待ち | `cmux browser $BSURF wait --load-state complete --timeout 15` |
+| スクリーンショット | `cmux browser $BSURF screenshot --out /tmp/file.png` |
+| スナップショット | `cmux browser $BSURF snapshot --interactive` |
+| URL取得 | `cmux browser $BSURF get url` |
+
+### 要素操作
+
+| 操作 | コマンド |
+|------|---------|
+| クリック | `cmux browser $BSURF click e2` |
+| テキスト入力 | `cmux browser $BSURF fill e3 "TEXT"` |
+| JS実行 | `cmux browser $BSURF eval "SCRIPT"` |
+| キー押下 | `cmux browser $BSURF press Enter` |
+
+### snapshot vs screenshot の使い分け
+
+**原則: 要素を操作・確認する目的では `snapshot` を使う。`screenshot` はトークンを大量消費するため最終手段にとどめる。**
+
+| 目的 | 使うコマンド |
+|------|------------|
+| ページ上の要素を探して操作する | `snapshot --interactive` |
+| テキスト内容・構造を確認する | `snapshot` |
+| 視覚的レイアウトの確認が必要 | `screenshot` |
+
+### Discord UI 操作パターン
+
+**テキストベースのボタンクリック**:
+```bash
+cmux browser $BSURF eval "
+  var btn = Array.from(document.querySelectorAll('button')).find(function(b) {
+    return b.textContent.trim() === 'ターゲットテキスト';
+  });
+  if (btn) btn.setAttribute('data-auto-click', '1');
+"
+cmux browser $BSURF click "[data-auto-click]"
+```
+
+**チェックボックスの操作**（Discord カスタム UI 対応）:
+```bash
+cmux browser $BSURF eval "
+  var cb = document.querySelectorAll('input[type=checkbox]')[INDEX];
+  if (cb && !cb.checked) cb.setAttribute('data-auto-cb', '1');
+"
+cmux browser $BSURF click "[data-auto-cb]"
+```
+
 ## スクリプト一覧
 
 | ファイル | 役割 |
@@ -137,10 +208,3 @@ Claude が snapshot/screenshot で状態を見て判断すべき箇所:
 - [`references/selectors.md`](references/selectors.md) — 検証済みセレクタ一覧
 - [`references/error-patterns.md`](references/error-patterns.md) — エラーパターンと対処法
 - [`references/portal-flow.md`](references/portal-flow.md) — Developer Portal URL・UI 構造
-
-## 出力
-
-- Bot Token（安全に保管すること — 文字数のみ通知）
-- Application ID
-- 招待URL
-- 設定した権限の一覧

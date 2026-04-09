@@ -1,77 +1,101 @@
+**[日本語](README.ja.md)** | English
+
 # discord-portal-cli
 
 A Claude Code plugin that automates Discord Developer Portal operations via cmux browser automation.
 
-## What it does
+## Motivation
 
-Create Discord bots from your terminal. No more clicking through the Developer Portal UI manually.
+- Discord has no CLI or API for managing Developer Portal resources
+- Creating bots requires manual browser navigation
+- When you need multiple bots, the manual process is significant friction
+- cmux browser automation eliminates this by driving the real browser session
 
-```
-/create-bot MyAwesomeBot
-```
+## What's Included
 
-This plugin uses cmux (terminal multiplexer with browser automation) to interact with the Discord Developer Portal, handling:
-
-- Application creation
-- Bot token generation
-- Permission configuration
-- Server invite URL generation
-
-## Why
-
-Discord has no CLI or API for managing Developer Portal resources (applications, bots). Every bot creation requires manual browser navigation. When you need to create multiple bots (e.g., 9 worker bots for a voice recording system), the friction is significant.
-
-This plugin eliminates that friction by automating the browser operations through cmux.
+| Category | Description |
+|----------|-------------|
+| **Bot creation** | Full lifecycle: application → token → intents → OAuth2 URL |
+| **Error handling** | CAPTCHA detection, 2FA escalation, login checks |
+| **Token security** | Clipboard-based retrieval, no screenshots during display |
+| **Semantic approach** | Claude reads SKILL.md, executes scripts, verifies via screenshots |
 
 ## Prerequisites
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
-- [cmux](https://github.com/anthropics/cmux) installed
+- [cmux](https://cmux.dev) installed, with Claude Code running inside a cmux session
 - A browser session logged into [Discord Developer Portal](https://discord.com/developers/applications)
+- macOS (uses `pbpaste` for clipboard access)
 
 ## Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/yourname/discord-portal-cli.git
+### Option 1: Plugin (recommended)
 
-# Install as a Claude Code plugin
-claude plugin install ./discord-portal-cli
+```
+/plugin marketplace add yamamoto/discord-portal-cli
+/plugin install discord-portal-cli
+```
+
+Skills, commands, and hooks are installed together.
+
+**To update:**
+
+```
+/plugin update discord-portal-cli
+/reload-plugins
+```
+
+### Option 2: Agent Skills (skills only)
+
+```bash
+npx skills add yamamoto/discord-portal-cli
+```
+
+> Note: Commands (`/create-bot`) are not included in Agent Skills distribution.
+
+### Option 3: Manual (legacy)
+
+```bash
+git clone https://github.com/yamamoto/discord-portal-cli.git
+cd discord-portal-cli
+bash install.sh
+```
+
+Installed files:
+
+| Destination | Contents |
+|-------------|----------|
+| `~/.claude/skills/create-bot/SKILL.md` | Main skill definition |
+| `~/.claude/commands/create-bot.md` | `/create-bot` slash command |
+
+### Verify Installation (manual only)
+
+```bash
+bash install.sh --check
+```
+
+### Uninstall (manual only)
+
+```bash
+bash install.sh --uninstall
 ```
 
 ## Usage
 
-```bash
-# Create a new bot
+```
 /create-bot MyBotName
-
-# Create a bot with specific server
 /create-bot MyBotName --server 123456789
 ```
 
-## How it works
+Claude will:
+1. Open the Discord Developer Portal in a cmux browser pane
+2. Create the application and retrieve the bot token
+3. Configure privileged gateway intents
+4. Generate an OAuth2 invite URL
+5. (Optional) Invite the bot to a specified server
 
-1. **Semantic layer** (SKILL.md): Natural language description of "what to do"
-2. **Script layer** (scripts/): Verified cmux command sequences
-3. **Claude bridges them**: Reads the semantic instructions, executes scripts at the right time, verifies results via screenshots, and proceeds to the next step
-
-This approach is more resilient than traditional browser automation (Playwright/Puppeteer) because:
-- Uses existing browser sessions (no auth complexity)
-- Claude can visually verify each step and recover from unexpected states
-- No heavy dependencies (no browser binary downloads)
-
-## Development
-
-```bash
-# Set up environment
-cp .envrc.example .envrc
-# Edit .envrc with your Claude Code OAuth token
-direnv allow
-
-# Run Claude Code in this directory
-claude
-```
+**Human intervention required for**: hCaptcha, 2FA password, login, server authorization.
 
 ## License
 
-MIT
+[MIT](LICENSE)
