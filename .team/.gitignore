@@ -1,0 +1,9 @@
+output/
+prompts/
+docs-snapshot/
+logs/
+queue/
+conductors/
+master.surface
+task-state.json
+tasks/*.status.json

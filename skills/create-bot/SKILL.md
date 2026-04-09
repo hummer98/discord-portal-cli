@@ -1,17 +1,14 @@
 ---
 name: create-bot
-description: >
-  Discord Developer Portal で新しい Bot を作成する cmux ブラウザ自動化スキル。
-  アプリ作成・Bot トークン取得・Intents 設定・招待URL生成を一連で実行。
-  ユーザーが「Botを作って」「Discord Botを追加」「create discord bot」と言った場合に使用。
+description: "Discord Developer Portal で Bot を作成する。cmux ブラウザ自動化でアプリケーション作成・トークン取得・権限設定・招待URL生成を行う。"
 argument-hint: <bot-name> [--server <server-id>] [--token-file <path>]
-allowed-tools: Bash Read Write AskUserQuestion
-disable-model-invocation: true
 ---
 
 # Discord Bot 作成スキル
 
 cmux ブラウザ自動化で Discord Developer Portal を操作し、Bot を作成する。
+
+> **インストール方法**: プラグインインストール（`/plugin install discord-portal-cli`）を推奨。手動インストール（`install.sh`）の場合、スクリプトの実行にはリポジトリルートからの実行が前提となる。
 
 ## 前提条件
 
@@ -31,7 +28,14 @@ TOKEN_FILE=""            # --token-file <path> が指定された場合
 
 `BOT_NAME` が未指定の場合は `AskUserQuestion` で Bot 名を尋ねる。
 
-## 実行方法
+## 出力
+
+- Bot Token（安全に保管すること — 文字数のみ通知）
+- Application ID
+- 招待URL
+- 設定した権限の一覧
+
+## 操作フロー（スクリプト版）
 
 ### Phase 1: ブラウザ起動 + ログイン確認
 
@@ -108,11 +112,106 @@ TOKEN_FILE=""            # --token-file <path> が指定された場合
 
 ## 技術的な注意事項（要約）
 
-- Discord のカスタム UI では `check`/`uncheck` は効かない → **`click` を使用**
-- セレクタはハッシュ付きクラス名が不安定。テキストベース検索が最も安定（詳細: [selectors.md](references/selectors.md)）
-- 2024年以降、アプリ作成時に Bot が自動追加されるため「Add Bot」フローは不要
-- ボタンテキストは日本語 UI 前提（「新しいアプリケーション」「作成」「変更を保存」等）
-- DOM 構造が変わった場合は snapshot でセレクタを再特定する
+## よくある問題と対処
+
+| 症状 | 原因 | 対処 |
+|------|------|------|
+| hCaptcha 出現 | Bot作成の検証 | ユーザーにエスカレーション |
+| 2FA パスワード要求 | トークンリセット時のセキュリティ | ユーザーにエスカレーション |
+| /login にリダイレクト | セッション切れ | ユーザーにログインを依頼 |
+| セレクタ不一致 | Discord のデプロイ更新 | snapshot で確認し、テキストベース検索に切り替え |
+| 保存ボタンが無効 | 変更なし | スキップして次の Phase へ |
+| ページロード前の操作エラー | ロード未完了 | `wait --load-state complete --timeout 15` を操作前に入れる |
+
+## 技術的な注意事項
+
+### Discord のカスタム UI
+- `check`/`uncheck` コマンドは効かない → **`click` を使用**
+- React 管理の状態は `eval "element.click()"` で更新されないことがある
+- **推奨パターン**: `eval` で `data-*` 属性を付与 → `cmux browser click --selector "[data-*]"` で操作
+
+### セレクタの安定性
+- クラス名にハッシュ（`button_a22cb0` 等）が含まれ、デプロイごとに変更される
+- 安定するセレクタ: `input#appname`, `input#bot-username-input`, `input[type=checkbox]`
+- 不安定なセレクタ: `.primary_a22cb0`, `.button_a22cb0`
+- テキストベース検索が最も安定: `Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'ターゲットテキスト')`
+
+### Bot は自動生成
+- 2024年以降、アプリケーション作成時に Bot が自動で追加される
+- 「Add Bot」→「Yes, do it!」のフローは **不要**
+- Bot ページには初回から Bot 情報が表示されている
+
+### トークンのセキュリティ
+- 取得方法: コピーボタンクリック → `pbpaste`（macOS クリップボード）
+- フォールバック: テキストノードから直接取得（eval 経由）
+- 取得後は即座にページ遷移してトークン表示を閉じる
+- ファイル保存時は `umask 077` でパーミッション制限
+
+### 日本語 UI
+- ボタンテキストは日本語: 「新しいアプリケーション」「作成」「変更を保存」「トークンをリセット」「実行します！」
+- ロケール依存のため、英語 UI では動作しない可能性あり
+
+### セマンティック判断
+- Claude が snapshot/screenshot で状態を見て判断すべき箇所:
+  - モーダルダイアログの内容確認（エラーメッセージの有無）
+  - 保存成功メッセージの確認
+  - DOM 構造が変わった場合のセレクタ再特定
+
+## cmux browser コマンドリファレンス
+
+本スキルで使用する cmux browser の主要コマンド。
+
+### ブラウザ操作
+
+| 操作 | コマンド |
+|------|---------|
+| ブラウザ起動 | `cmux browser open "URL"` |
+| ページ遷移 | `cmux browser $BSURF goto "URL"` |
+| 読み込み待ち | `cmux browser $BSURF wait --load-state complete --timeout 15` |
+| スクリーンショット | `cmux browser $BSURF screenshot --out /tmp/file.png` |
+| スナップショット | `cmux browser $BSURF snapshot --interactive` |
+| URL取得 | `cmux browser $BSURF get url` |
+
+### 要素操作
+
+| 操作 | コマンド |
+|------|---------|
+| クリック | `cmux browser $BSURF click e2` |
+| テキスト入力 | `cmux browser $BSURF fill e3 "TEXT"` |
+| JS実行 | `cmux browser $BSURF eval "SCRIPT"` |
+| キー押下 | `cmux browser $BSURF press Enter` |
+
+### snapshot vs screenshot の使い分け
+
+**原則: 要素を操作・確認する目的では `snapshot` を使う。`screenshot` はトークンを大量消費するため最終手段にとどめる。**
+
+| 目的 | 使うコマンド |
+|------|------------|
+| ページ上の要素を探して操作する | `snapshot --interactive` |
+| テキスト内容・構造を確認する | `snapshot` |
+| 視覚的レイアウトの確認が必要 | `screenshot` |
+
+### Discord UI 操作パターン
+
+**テキストベースのボタンクリック**:
+```bash
+cmux browser $BSURF eval "
+  var btn = Array.from(document.querySelectorAll('button')).find(function(b) {
+    return b.textContent.trim() === 'ターゲットテキスト';
+  });
+  if (btn) btn.setAttribute('data-auto-click', '1');
+"
+cmux browser $BSURF click "[data-auto-click]"
+```
+
+**チェックボックスの操作**（Discord カスタム UI 対応）:
+```bash
+cmux browser $BSURF eval "
+  var cb = document.querySelectorAll('input[type=checkbox]')[INDEX];
+  if (cb && !cb.checked) cb.setAttribute('data-auto-cb', '1');
+"
+cmux browser $BSURF click "[data-auto-cb]"
+```
 
 ## スクリプト一覧
 
@@ -133,10 +232,3 @@ TOKEN_FILE=""            # --token-file <path> が指定された場合
 - [`references/selectors.md`](references/selectors.md) — 検証済みセレクタ一覧
 - [`references/error-patterns.md`](references/error-patterns.md) — エラーパターンと対処法
 - [`references/portal-flow.md`](references/portal-flow.md) — Developer Portal URL・UI 構造
-
-## 出力
-
-- Bot Token（安全に保管すること — 文字数のみ通知）
-- Application ID
-- 招待URL
-- 設定した権限の一覧

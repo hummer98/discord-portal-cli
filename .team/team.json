@@ -1,0 +1,42 @@
+{
+  "project": "",
+  "phase": "running",
+  "architecture": "4-tier",
+  "master": {
+    "surface": "surface:143",
+    "status": "idle"
+  },
+  "manager": {
+    "pid": 40541,
+    "type": "typescript",
+    "status": "running"
+  },
+  "conductors": [
+    {
+      "surface": "surface:140",
+      "taskRunId": "task-002-1775759380",
+      "taskId": "002",
+      "taskTitle": "using-cmux を参考にリポジトリを公開可能な状態に整備する",
+      "status": "running",
+      "worktreePath": "/Users/yamamoto/git/discord-portal-cli/.worktrees/task-002-1775759380",
+      "outputDir": ".team/tasks/002-using-cmux/runs/task-002-1775759380",
+      "startedAt": "2026-04-09T18:29:45.060Z",
+      "paneId": "pane:87",
+      "agents": []
+    },
+    {
+      "surface": "surface:141",
+      "status": "idle",
+      "startedAt": "2026-04-09T18:29:59.534Z",
+      "paneId": "pane:88",
+      "agents": []
+    },
+    {
+      "surface": "surface:142",
+      "status": "idle",
+      "startedAt": "2026-04-09T16:55:27.614Z",
+      "paneId": "pane:89",
+      "agents": []
+    }
+  ]
+}

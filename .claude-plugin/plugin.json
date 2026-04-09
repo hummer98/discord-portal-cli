@@ -6,5 +6,18 @@
     "name": "yamamoto"
   },
   "license": "MIT",
-  "keywords": ["discord", "bot", "automation", "cmux", "developer-portal"]
+  "repository": "https://github.com/yamamoto/discord-portal-cli",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$CMUX_SURFACE_ID\" ] && [ -z \"$CMUX_NO_RENAME_TAB\" ]; then REF=$(cmux identify | jq -r '.caller.surface_ref'); NUM=$(echo \"$REF\" | cut -d: -f2); cmux rename-tab --surface \"$REF\" \"[$NUM] Claude Code\"; fi"
+          }
+        ]
+      }
+    ]
+  }
 }

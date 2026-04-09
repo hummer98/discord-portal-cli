@@ -10,3 +10,8 @@
 
 # Node
 node_modules/
+
+# Team ephemeral directories
+.team/output/
+.team/prompts/
+.team/docs-snapshot/
